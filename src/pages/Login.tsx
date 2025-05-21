@@ -4,12 +4,14 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
+import AuthInfoModal from '../components/AuthInfoModal';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [returnUrl, setReturnUrl] = useState('/');
+  const [showAuthInfo, setShowAuthInfo] = useState(true);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -133,6 +135,11 @@ const Login = () => {
           </div>
         </form>
       </div>
+
+      <AuthInfoModal 
+        isOpen={showAuthInfo} 
+        onClose={() => setShowAuthInfo(false)} 
+      />
     </div>
   );
 };

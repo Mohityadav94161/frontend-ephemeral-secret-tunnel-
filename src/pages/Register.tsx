@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
@@ -6,12 +5,14 @@ import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertTriangle } from 'lucide-react';
+import AuthInfoModal from '../components/AuthInfoModal';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAuthInfo, setShowAuthInfo] = useState(true);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -146,6 +147,11 @@ const Register = () => {
       <div className="mt-8 text-center text-sm text-muted-foreground">
         <p>By registering, you understand that your data is stored locally and all content will be automatically deleted based on time limits.</p>
       </div>
+
+      <AuthInfoModal 
+        isOpen={showAuthInfo} 
+        onClose={() => setShowAuthInfo(false)} 
+      />
     </div>
   );
 };

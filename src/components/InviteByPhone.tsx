@@ -64,6 +64,75 @@ const countryCodes = [
   { code: '+82', name: 'South Korea' },
 ];
 
+// Message templates for different scenarios
+const messageTemplates = [
+  // Professional Templates (20%)
+  {
+    id: 'professional',
+    name: 'Professional Network',
+    template: 'Hello! I\'d like to discuss some professional opportunities. I\'ve set up a secure chat room "{chatName}" for our conversation. Join with code: {roomCode} or this link: {origin}/chat/{chatId}'
+  },
+  {
+    id: 'business',
+    name: 'Business Connection',
+    template: 'Hi! I noticed your business profile and would love to explore potential collaboration. Join my secure chat room "{chatName}" using code: {roomCode} or this link: {origin}/chat/{chatId}'
+  },
+  {
+    id: 'career',
+    name: 'Career Opportunity',
+    template: 'Hello! I came across your profile and have an exciting career opportunity to discuss. Join my secure chat room "{chatName}" with code: {roomCode} or this link: {origin}/chat/{chatId}'
+  },
+
+  // Personal/Flirty Templates (60%)
+  {
+    id: 'flirty1',
+    name: 'Casual Flirty',
+    template: 'Hey! I couldn\'t help but notice your profile. Would love to chat more in my secure room "{chatName}". Join with code: {roomCode} or this link: {origin}/chat/{chatId} 😊'
+  },
+  {
+    id: 'flirty2',
+    name: 'Playful',
+    template: 'Hi there! Your profile caught my eye. Let\'s chat in my private room "{chatName}"? Join using code: {roomCode} or this link: {origin}/chat/{chatId} 💫'
+  },
+  {
+    id: 'flirty3',
+    name: 'Sweet',
+    template: 'Hey! I\'ve been thinking about your profile. Join my secure chat room "{chatName}" so we can talk more? Code: {roomCode} or this link: {origin}/chat/{chatId} ✨'
+  },
+  {
+    id: 'flirty4',
+    name: 'Direct',
+    template: 'Hi! I\'d love to get to know you better. Join my private chat room "{chatName}" using code: {roomCode} or this link: {origin}/chat/{chatId} 💝'
+  },
+  {
+    id: 'flirty5',
+    name: 'Mysterious',
+    template: 'Hey! I have something interesting to share. Join my secure room "{chatName}" with code: {roomCode} or this link: {origin}/chat/{chatId} 🌟'
+  },
+  {
+    id: 'flirty6',
+    name: 'Friendly',
+    template: 'Hi! I think we might have a lot in common. Let\'s chat in my secure room "{chatName}". Join with code: {roomCode} or this link: {origin}/chat/{chatId} 💫'
+  },
+
+  // Other Templates (20%)
+  {
+    id: 'social',
+    name: 'Social Connection',
+    template: 'Hey there! I saw your post about {topic} and would love to chat more about it. Join my secure chat room "{chatName}" using code: {roomCode} or this link: {origin}/chat/{chatId}'
+  },
+  {
+    id: 'hobby',
+    name: 'Shared Interest',
+    template: 'Hi! I noticed we share the same interest in {topic}. Join my secure chat room "{chatName}" to discuss more. Code: {roomCode} or this link: {origin}/chat/{chatId}'
+  },
+  {
+    id: 'default',
+    name: 'Default Invitation',
+    template: 'Hey! I\'ve created a secure chat room "{chatName}". You can join using code: {roomCode} or this link: {origin}/chat/{chatId}'
+  }
+];
+
 const InviteByPhone = ({ 
   chatName, 
   chatId, 
@@ -88,10 +157,14 @@ const InviteByPhone = ({
   // Generate default message when dialog opens or props change
   useEffect(() => {
     if (isOpen) {
-      setMessage(
-        `Hey! I've created a secure chat room "${chatName}". ` +
-        `You can join using code: ${roomCode} or this link: ${window.location.origin}/chat/${chatId}`
-      );
+      const defaultTemplate = messageTemplates.find(t => t.id === 'flirty1')?.template || messageTemplates[0].template;
+      const formattedMessage = defaultTemplate
+        .replace('{chatName}', chatName)
+        .replace('{roomCode}', roomCode)
+        .replace('{chatId}', chatId)
+        .replace('{origin}', window.location.origin);
+      
+      setMessage(formattedMessage);
       
       // If user is authenticated, fetch SMS limits
       if (isAuthenticated) {
@@ -219,6 +292,18 @@ const InviteByPhone = ({
     setPhoneNumber(digits);
   };
 
+  const handleTemplateChange = (templateId: string) => {
+    const selectedTemplate = messageTemplates.find(t => t.id === templateId);
+    if (selectedTemplate) {
+      const formattedMessage = selectedTemplate.template
+        .replace('{chatName}', chatName)
+        .replace('{roomCode}', roomCode)
+        .replace('{chatId}', chatId)
+        .replace('{origin}', window.location.origin);
+      setMessage(formattedMessage);
+    }
+  };
+
   // Calculate the percentage of SMS limit used
   const smsLimitPercentage = smsLimits 
     ? Math.round((smsLimits.sms_sent_today / smsLimits.daily_limit) * 100) 
@@ -287,12 +372,12 @@ const InviteByPhone = ({
         <form onSubmit={handleSendInvite} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="phone-number" className="text-sm">Phone Number</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <Select
                 value={countryCode}
                 onValueChange={setCountryCode}
               >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full sm:w-[120px]">
                   <SelectValue placeholder="Country" />
                 </SelectTrigger>
                 <SelectContent>
@@ -318,30 +403,54 @@ const InviteByPhone = ({
             </p>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="message" className="text-sm">Message</Label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter your invitation message"
-              className="text-sm"
-              rows={4}
-            />
+          <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="message" className="text-sm font-medium">Message</Label>
+                <Select
+                  onValueChange={handleTemplateChange}
+                  defaultValue="flirty1"
+                >
+                  <SelectTrigger className="w-[180px] h-8 text-xs">
+                    <SelectValue placeholder="Choose a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {messageTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Textarea
+                id="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Enter your invitation message"
+                className="text-sm min-h-[120px] resize-y"
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Customize the message to make it more personal and engaging
+              </p>
+            </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
               disabled={isLoading}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={isLoading || (smsLimits?.remaining_allowance === 0)}
+              className="w-full sm:w-auto"
             >
               {isLoading ? (
                 <>
